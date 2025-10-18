@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import { STATE_BY_CODE, STATE_BY_FIPS } from '../data/states';
+import { demoStates, getDemoNewsForState } from '../data/demo';
 
 export type StatusColor = 'green' | 'yellow' | 'red';
 
@@ -229,8 +230,18 @@ function normalizeNews(payload: NewsResponse | NewsItem[]): NewsItem[] {
 export const statesQueryOptions = queryOptions({
   queryKey: ['map', 'states'],
   queryFn: async () => {
-    const result = await fetchJSON<StatesResponse | StateStatus[]>('/webhook/map/states');
-    return normalizeStates(result);
+    try {
+      const result = await fetchJSON<StatesResponse | StateStatus[]>('/webhook/map/states');
+      const states = normalizeStates(result);
+      if (states.length === 0) {
+        console.warn('map/states returned no data, falling back to demo data.');
+        return demoStates;
+      }
+      return states;
+    } catch (error) {
+      console.warn('Falling back to demo state data due to fetch error:', error);
+      return demoStates;
+    }
   },
   staleTime: 5 * 60 * 1000
 });
@@ -239,10 +250,24 @@ export const newsQueryOptions = (state: string) =>
   queryOptions({
     queryKey: ['map', 'news', state],
     queryFn: async () => {
-      const result = await fetchJSON<NewsResponse | NewsItem[]>(
-        `/webhook/map/news?state=${encodeURIComponent(state)}`
-      );
-      return normalizeNews(result);
+      if (!state) {
+        return [];
+      }
+
+      try {
+        const result = await fetchJSON<NewsResponse | NewsItem[]>(
+          `/webhook/map/news?state=${encodeURIComponent(state)}`
+        );
+        const news = normalizeNews(result);
+        if (news.length === 0) {
+          console.warn('map/news returned no items, using demo feed.');
+          return getDemoNewsForState(state);
+        }
+        return news;
+      } catch (error) {
+        console.warn('Falling back to demo news data due to fetch error:', error);
+        return getDemoNewsForState(state);
+      }
     },
     enabled: !!state,
     staleTime: 60 * 1000
