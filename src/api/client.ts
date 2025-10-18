@@ -119,7 +119,7 @@ function normalizeStates(payload: StatesResponse | StateStatus[]): StateStatus[]
         : String(fipsSource ?? '').padStart(2, '0');
     const metaFromCode = STATE_BY_CODE[rawCode];
     const metaFromFips = fipsValue ? STATE_BY_FIPS[fipsValue] : undefined;
-    const resolvedCode = (metaFromCode ?? metaFromFips)?.code ?? rawCode || `UNK-${index}`;
+    const resolvedCode = ((metaFromCode ?? metaFromFips)?.code ?? rawCode) || `UNK-${index}`;
     const meta = STATE_BY_CODE[resolvedCode];
 
     const linkValue = record.link ?? record.url ?? null;
@@ -135,12 +135,24 @@ function normalizeStates(payload: StatesResponse | StateStatus[]): StateStatus[]
     }
 
     const tags = Array.isArray(record.tags)
-      ? (record.tags as unknown[]).map((tag) => tag?.toString()).filter(Boolean)
+      ? (record.tags as unknown[])
+          .map((tag) => (tag == null ? null : String(tag)))
+          .filter((tag): tag is string => Boolean(tag))
       : [];
 
     const reasonValue = record.reason_short ?? record.reason ?? record.summary ?? '';
     const updatedValue = record.updated_at ?? record.updatedAt ?? record.last_updated ?? '';
     const confidenceValue = record.confidence ?? record.confidence_label ?? record.certainty ?? 'Unknown';
+    const reasonText =
+      typeof reasonValue === 'string' ? reasonValue : reasonValue == null ? '' : String(reasonValue);
+    const updatedText =
+      typeof updatedValue === 'string' ? updatedValue : updatedValue == null ? '' : String(updatedValue);
+    const confidenceText =
+      typeof confidenceValue === 'string'
+        ? confidenceValue
+        : confidenceValue == null
+        ? 'Unknown'
+        : String(confidenceValue);
 
     return {
       code: resolvedCode,
@@ -149,9 +161,9 @@ function normalizeStates(payload: StatesResponse | StateStatus[]): StateStatus[]
           ? record.name
           : meta?.name ?? (rawCode ? rawCode : resolvedCode),
       status: normalizeStatus(record.status ?? record.color),
-      reason_short: typeof reasonValue === 'string' ? reasonValue : '',
-      updated_at: typeof updatedValue === 'string' ? updatedValue : '',
-      confidence: typeof confidenceValue === 'string' ? confidenceValue : String(confidenceValue),
+      reason_short: reasonText,
+      updated_at: updatedText,
+      confidence: confidenceText,
       link,
       tags
     };
@@ -189,7 +201,9 @@ function normalizeNews(payload: NewsResponse | NewsItem[]): NewsItem[] {
     const record = raw as Record<string, unknown>;
     const state = (record.state ?? record.region ?? '').toString().toUpperCase();
     const tags = Array.isArray(record.tags)
-      ? (record.tags as unknown[]).map((tag) => tag?.toString()).filter(Boolean)
+      ? (record.tags as unknown[])
+          .map((tag) => (tag == null ? null : String(tag)))
+          .filter((tag): tag is string => Boolean(tag))
       : [];
 
     const publishedValue = record.published_at ?? record.publishedAt ?? record.date ?? '';

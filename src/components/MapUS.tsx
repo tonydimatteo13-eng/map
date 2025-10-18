@@ -1,12 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { offset, shift, useFloating } from '@floating-ui/react-dom';
+import type { Feature, GeoJsonProperties, Geometry } from 'geojson';
 import type { StateStatus, StatusColor } from '../api/client';
 import Tooltip from './Tooltip';
 import topology from 'us-atlas/states-10m.json' assert { type: 'json' };
 import { STATE_BY_CODE, STATE_BY_FIPS } from '../data/states';
 
 type MapState = (StateStatus & { visible: boolean }) | undefined;
+
+type GeographyFeature = Feature<
+  Geometry,
+  GeoJsonProperties & { id?: number | string; STATEFP?: string }
+>;
 
 interface MapUSProps {
   states: Array<StateStatus & { visible: boolean }>;
@@ -43,8 +49,7 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
   });
 
   const handleStateEnter = (
-    code: string,
-    event: React.MouseEvent<SVGPathElement, MouseEvent>,
+    event: React.MouseEvent<SVGPathElement> | React.FocusEvent<SVGPathElement>,
     stateData: MapState
   ) => {
     if (!stateData) {
@@ -67,9 +72,21 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
         className="w-full"
       >
         <Geographies geography={topology}>
-          {({ geographies }) =>
+          {({ geographies }: { geographies: GeographyFeature[] }) =>
             geographies.map((geo) => {
-              const fipsCode = typeof geo.id === 'number' ? geo.id.toString().padStart(2, '0') : geo.id;
+              const feature = geo as GeographyFeature;
+              const rawId = feature.id ?? feature.properties?.id;
+              const propertyFips =
+                typeof feature.properties?.STATEFP === 'string'
+                  ? feature.properties.STATEFP
+                  : undefined;
+              const computedId =
+                typeof rawId === 'number'
+                  ? rawId.toString().padStart(2, '0')
+                  : typeof rawId === 'string'
+                  ? rawId.padStart(2, '0')
+                  : '';
+              const fipsCode = propertyFips ?? computedId;
               const meta = STATE_BY_FIPS[fipsCode];
               if (!meta) {
                 return null;
@@ -82,20 +99,18 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
               return (
                 <Geography
                   key={meta.code}
-                  geography={geo}
+                  geography={feature}
                   tabIndex={0}
                   role="button"
+                  aria-label={`Select ${meta.name}`}
                   aria-pressed={isSelected}
-                  onMouseEnter={(event) => handleStateEnter(meta.code, event, stateData)}
-                  onMouseMove={(event) => handleStateEnter(meta.code, event, stateData)}
+                  onMouseEnter={(event) => handleStateEnter(event, stateData)}
+                  onMouseMove={(event) => handleStateEnter(event, stateData)}
                   onMouseLeave={handleStateLeave}
-                  onFocus={(event) => {
-                    refs.setReference(event.currentTarget);
-                    setHoverState(stateData);
-                  }}
+                  onFocus={(event) => handleStateEnter(event, stateData)}
                   onBlur={handleStateLeave}
                   onClick={() => onSelectState(meta.code)}
-                  onKeyDown={(event) => {
+                  onKeyDown={(event: React.KeyboardEvent<SVGPathElement>) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
                       onSelectState(meta.code);

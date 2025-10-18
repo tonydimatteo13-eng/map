@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { newsQueryOptions, NewsItem } from '../api/client';
 import { formatDateTime, formatRelativeTime } from '../utils/datetime';
@@ -9,12 +9,12 @@ interface NewsFeedProps {
 }
 
 const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode }) => {
+  if (!stateCode) {
+    return <div className="card text-sm text-slate-500">Select a state to view recent updates.</div>;
+  }
+
   const queryOptions = useMemo(() => newsQueryOptions(stateCode), [stateCode]);
-  const { data: items = [] } = useQuery({
-    ...queryOptions,
-    suspense: Boolean(stateCode),
-    placeholderData: () => [] as NewsItem[]
-  });
+  const { data: items } = useSuspenseQuery(queryOptions);
 
   const parentRef = useRef<HTMLDivElement | null>(null);
   const rowVirtualizer = useVirtualizer({
@@ -23,10 +23,6 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode }) => {
     estimateSize: () => 120,
     overscan: 8
   });
-
-  if (!stateCode) {
-    return <div className="card text-sm text-slate-500">Select a state to view recent updates.</div>;
-  }
 
   if (!items.length) {
     return (
