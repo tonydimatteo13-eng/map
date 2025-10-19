@@ -76,7 +76,7 @@ export async function callOpenAiChat(
     role: message.role,
     content: [
       {
-        type: 'text',
+        type: 'input_text',
         text: message.content
       }
     ]
