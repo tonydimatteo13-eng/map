@@ -72,10 +72,20 @@ export async function callOpenAiChat(
     throw new Error('Missing OpenAI API key. Set VITE_OPENAI_API_KEY in your environment.');
   }
 
+  const input = messages.map((message) => ({
+    role: message.role,
+    content: [
+      {
+        type: 'text',
+        text: message.content
+      }
+    ]
+  }));
+
   const payload = {
     model: MODEL,
     temperature: options.temperature ?? 1,
-    messages
+    input
   };
 
   const response = await fetch(OPENAI_ENDPOINT, {
