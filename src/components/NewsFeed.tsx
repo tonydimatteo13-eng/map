@@ -6,9 +6,11 @@ import { formatDateTime, formatRelativeTime } from '../utils/datetime';
 
 interface NewsFeedProps {
   stateCode: string;
+  onAskChat: (item: NewsItem) => void;
+  activeChatId?: string | null;
 }
 
-const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode }) => {
+const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId }) => {
   if (!stateCode) {
     return <div className="card text-sm text-slate-500">Select a state to view recent updates.</div>;
   }
@@ -52,6 +54,8 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode }) => {
                 key={item.id ?? virtualItem.key}
                 item={item}
                 virtualItem={virtualItem}
+                onAskChat={onAskChat}
+                isActive={activeChatId === item.id}
               />
             );
           })}
@@ -64,9 +68,11 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode }) => {
 interface NewsCardProps {
   item: NewsItem;
   virtualItem: VirtualItem;
+  onAskChat: (item: NewsItem) => void;
+  isActive: boolean;
 }
 
-const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem }) => {
+const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem, onAskChat, isActive }) => {
   const offsetTop = virtualItem.start;
   const tags = item.tags ?? [];
   const publishedRelative = item.published_at ? formatRelativeTime(item.published_at) : 'Unknown';
@@ -96,9 +102,20 @@ const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem }) => {
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{item.summary}</p>
       ) : null}
 
-      <footer className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+      <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span title={publishedExact ?? undefined}>Published {publishedRelative}</span>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onAskChat(item)}
+            className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition ${
+              isActive
+                ? 'border-status-green bg-status-green/20 text-status-green shadow-sm'
+                : 'border-slate-300 text-slate-600 hover:border-status-green hover:text-status-green dark:border-slate-700 dark:text-slate-300'
+            }`}
+          >
+            Ask ChatGPT
+          </button>
           {tags.map((tag) => (
             <span key={tag} className="badge badge-muted">
               {tag}

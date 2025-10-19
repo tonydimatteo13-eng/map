@@ -1,10 +1,12 @@
 import React, { lazy, useEffect, useMemo, useState } from 'react';
+import clsx from 'clsx';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { StateStatus, StatusColor, statesQueryOptions } from './api/client';
+import { StateStatus, StatusColor, statesQueryOptions, type NewsItem } from './api/client';
 import Header from './components/Header';
 import Legend from './components/Legend';
 import MapUS from './components/MapUS';
 import StateDetails from './components/StateDetails';
+import ChatPanel from './components/ChatPanel';
 
 const NewsFeed = lazy(() => import('./components/NewsFeed'));
 
@@ -42,6 +44,7 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
   const [theme, setTheme] = useState<ThemeMode>(() =>
     document.documentElement.classList.contains('dark') ? 'dark' : 'light'
   );
+  const [chatArticle, setChatArticle] = useState<NewsItem | null>(null);
 
   useEffect(() => {
     if (selectedState) {
@@ -90,6 +93,7 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
     () => states.find((state) => state.code === selectedState) ?? null,
     [states, selectedState]
   );
+  const isChatOpen = Boolean(chatArticle);
 
   const onToggleColor = (color: StatusColor) => {
     setColorFilters((prev) => {
@@ -107,6 +111,10 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
     setColorFilters(new Set(ALL_COLORS));
     setTagFilter(null);
     setChangedOnly(false);
+  };
+
+  const handleAskChat = (item: NewsItem) => {
+    setChatArticle(item);
   };
 
   const handleThemeChange = (nextTheme: ThemeMode) => {
@@ -147,14 +155,28 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
           </div>
         </section>
 
-        <aside className="w-full shrink-0 lg:w-[350px] xl:w-[400px]">
+        <aside
+          className={clsx(
+            'w-full shrink-0 transition-[width] duration-300',
+            isChatOpen ? 'lg:w-[420px] xl:w-[520px]' : 'lg:w-[350px] xl:w-[400px]'
+          )}
+        >
           <div className="flex flex-col gap-4">
             <StateDetails state={selectedStateData} />
             <React.Suspense
               fallback={<div className="card text-sm text-slate-500">Loading news…</div>}
             >
-              <NewsFeed stateCode={selectedState} />
+              <NewsFeed
+                stateCode={selectedState}
+                onAskChat={handleAskChat}
+                activeChatId={chatArticle?.id ?? null}
+              />
             </React.Suspense>
+            <ChatPanel
+              article={chatArticle}
+              stateName={selectedStateData?.name ?? selectedState}
+              onClose={() => setChatArticle(null)}
+            />
           </div>
         </aside>
       </main>
