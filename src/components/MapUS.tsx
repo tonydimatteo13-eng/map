@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { offset, shift, useFloating } from '@floating-ui/react-dom';
 import type { Feature, GeoJsonProperties, Geometry } from 'geojson';
@@ -40,29 +40,12 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
   }, [states]);
 
   const [hoverCode, setHoverCode] = useState<string | null>(null);
-  const [pinnedCode, setPinnedCode] = useState<string | null>(null);
-  const activeCode = hoverCode ?? pinnedCode;
-  const activeState = activeCode ? statesByCode.get(activeCode) : undefined;
+  const activeState = hoverCode ? statesByCode.get(hoverCode) : undefined;
   const { refs, floatingStyles } = useFloating({
     placement: 'top',
     open: Boolean(activeState?.visible),
     middleware: [offset(16), shift()]
   });
-  const isPinnedTooltip = Boolean(
-    pinnedCode &&
-      (!hoverCode || hoverCode === pinnedCode) &&
-      (statesByCode.get(pinnedCode)?.visible ?? false)
-  );
-
-  useEffect(() => {
-    if (!pinnedCode) {
-      return;
-    }
-    const stateData = statesByCode.get(pinnedCode);
-    if (!stateData || !stateData.visible) {
-      setPinnedCode(null);
-    }
-  }, [pinnedCode, statesByCode]);
 
   return (
     <div className="relative">
@@ -134,24 +117,12 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
                   onBlur={() => {
                     setHoverCode(null);
                   }}
-                  onClick={(event) => {
-                    if (stateData && stateData.visible) {
-                      refs.setReference(event.currentTarget);
-                      setPinnedCode(meta.code);
-                    } else {
-                      setPinnedCode(null);
-                    }
+                  onClick={() => {
                     onSelectState(meta.code);
                   }}
                   onKeyDown={(event: React.KeyboardEvent<SVGPathElement>) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      if (stateData && stateData.visible) {
-                        refs.setReference(event.currentTarget);
-                        setPinnedCode(meta.code);
-                      } else {
-                        setPinnedCode(null);
-                      }
                       onSelectState(meta.code);
                     }
                   }}
@@ -186,7 +157,6 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
         state={activeState ?? null}
         floatingStyles={floatingStyles}
         setFloating={refs.setFloating}
-        pinned={isPinnedTooltip}
       />
     </div>
   );

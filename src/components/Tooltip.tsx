@@ -11,7 +11,6 @@ interface TooltipProps {
   state?: TooltipData | null;
   floatingStyles: React.CSSProperties;
   setFloating: (node: HTMLDivElement | null) => void;
-  pinned: boolean;
 }
 
 const statusLabels: Record<string, string> = {
@@ -26,7 +25,7 @@ const statusSwatches: Record<StatusColor, string> = {
   red: '#cc3333'
 };
 
-const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloating, pinned }) => {
+const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloating }) => {
   if (!open || !state) {
     return null;
   }
@@ -42,9 +41,7 @@ const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloat
     <div
       ref={setFloating}
       style={floatingStyles}
-      className={`z-50 w-72 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900 ${
-        pinned ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
+      className="pointer-events-none z-50 w-72 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-start justify-between gap-2">
         <div>

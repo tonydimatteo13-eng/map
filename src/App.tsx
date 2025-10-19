@@ -4,6 +4,7 @@ import { StateStatus, StatusColor, statesQueryOptions } from './api/client';
 import Header from './components/Header';
 import Legend from './components/Legend';
 import MapUS from './components/MapUS';
+import StateDetails from './components/StateDetails';
 
 const NewsFeed = lazy(() => import('./components/NewsFeed'));
 
@@ -85,6 +86,11 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
     });
   }, [states, colorFilters, tagFilter, changedOnly]);
 
+  const selectedStateData = useMemo(
+    () => states.find((state) => state.code === selectedState) ?? null,
+    [states, selectedState]
+  );
+
   const onToggleColor = (color: StatusColor) => {
     setColorFilters((prev) => {
       const next = new Set(prev);
@@ -142,11 +148,14 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
         </section>
 
         <aside className="w-full shrink-0 lg:w-[350px] xl:w-[400px]">
-          <React.Suspense
-            fallback={<div className="card text-sm text-slate-500">Loading news…</div>}
-          >
-            <NewsFeed stateCode={selectedState} />
-          </React.Suspense>
+          <div className="flex flex-col gap-4">
+            <StateDetails state={selectedStateData} />
+            <React.Suspense
+              fallback={<div className="card text-sm text-slate-500">Loading news…</div>}
+            >
+              <NewsFeed stateCode={selectedState} />
+            </React.Suspense>
+          </div>
         </aside>
       </main>
     </div>
