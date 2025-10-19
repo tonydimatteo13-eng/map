@@ -169,6 +169,7 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
       <ChatPanel
         article={chatArticle}
         stateName={selectedStateData?.name ?? selectedState}
+        stateStatus={selectedStateData?.status ?? null}
         onClose={() => setChatArticle(null)}
       />
     </div>

@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { NewsItem } from '../api/client';
+import type { NewsItem, StatusColor } from '../api/client';
 import { callOpenAiChat, type ChatMessagePayload } from '../api/openai';
 
 interface ChatPanelProps {
   article: NewsItem | null;
   stateName?: string | null;
+  stateStatus?: StatusColor | null;
   onClose: () => void;
 }
 
@@ -23,7 +24,19 @@ function createId() {
   return Math.random().toString(36).slice(2);
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, onClose }) => {
+const statusLabel: Record<StatusColor, string> = {
+  green: 'Legal',
+  yellow: 'Caution',
+  red: 'Illegal'
+};
+
+const statusClass: Record<StatusColor, string> = {
+  green: 'bg-status-green text-slate-900',
+  yellow: 'bg-status-yellow text-slate-900',
+  red: 'bg-status-red text-white'
+};
+
+const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, stateStatus, onClose }) => {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +54,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, onClose }) =>
       `Tailor guidance to stakeholders tracking updates${stateText}.`
     ].join(' ');
   }, [stateName]);
+  const stateBadge = stateStatus
+    ? {
+        label: statusLabel[stateStatus] ?? stateStatus,
+        className: statusClass[stateStatus] ?? 'bg-slate-300 text-slate-800'
+      }
+    : null;
 
   const focusArticle = useMemo(() => {
     if (!article) {
@@ -199,12 +218,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, onClose }) =>
       <div className="relative flex h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white via-white to-slate-50 shadow-2xl dark:border-slate-700 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200/60 px-6 py-4 dark:border-slate-800/70">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              Chat about
-            </p>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                {stateName ?? 'State'}
+              </h3>
+              {stateBadge ? (
+                <span className={`badge text-xs ${stateBadge.className}`}>{stateBadge.label}</span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
               {focusArticle.title}
-            </h3>
+            </p>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span>{focusArticle.source}</span>
               {focusArticle.url ? (
