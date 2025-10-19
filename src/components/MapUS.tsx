@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { offset, shift, useFloating } from '@floating-ui/react-dom';
 import type { Feature, GeoJsonProperties, Geometry } from 'geojson';
@@ -6,8 +6,6 @@ import type { StateStatus, StatusColor } from '../api/client';
 import Tooltip from './Tooltip';
 import topology from 'us-atlas/states-10m.json' assert { type: 'json' };
 import { STATE_BY_CODE, STATE_BY_FIPS } from '../data/states';
-
-type MapState = (StateStatus & { visible: boolean }) | undefined;
 
 type GeographyFeature = Feature<
   Geometry,
@@ -41,28 +39,30 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
     return map;
   }, [states]);
 
-  const [hoverState, setHoverState] = useState<MapState>(undefined);
+  const [hoverCode, setHoverCode] = useState<string | null>(null);
+  const [pinnedCode, setPinnedCode] = useState<string | null>(null);
+  const activeCode = hoverCode ?? pinnedCode;
+  const activeState = activeCode ? statesByCode.get(activeCode) : undefined;
   const { refs, floatingStyles } = useFloating({
     placement: 'top',
-    open: Boolean(hoverState),
+    open: Boolean(activeState?.visible),
     middleware: [offset(16), shift()]
   });
+  const isPinnedTooltip = Boolean(
+    pinnedCode &&
+      (!hoverCode || hoverCode === pinnedCode) &&
+      (statesByCode.get(pinnedCode)?.visible ?? false)
+  );
 
-  const handleStateEnter = (
-    event: React.MouseEvent<SVGPathElement> | React.FocusEvent<SVGPathElement>,
-    stateData: MapState
-  ) => {
-    if (!stateData) {
-      setHoverState(undefined);
+  useEffect(() => {
+    if (!pinnedCode) {
       return;
     }
-    refs.setReference(event.currentTarget);
-    setHoverState(stateData);
-  };
-
-  const handleStateLeave = () => {
-    setHoverState(undefined);
-  };
+    const stateData = statesByCode.get(pinnedCode);
+    if (!stateData || !stateData.visible) {
+      setPinnedCode(null);
+    }
+  }, [pinnedCode, statesByCode]);
 
   return (
     <div className="relative">
@@ -104,15 +104,54 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
                   role="button"
                   aria-label={`Select ${meta.name}`}
                   aria-pressed={isSelected}
-                  onMouseEnter={(event) => handleStateEnter(event, stateData)}
-                  onMouseMove={(event) => handleStateEnter(event, stateData)}
-                  onMouseLeave={handleStateLeave}
-                  onFocus={(event) => handleStateEnter(event, stateData)}
-                  onBlur={handleStateLeave}
-                  onClick={() => onSelectState(meta.code)}
+                  data-state-code={meta.code}
+                  onMouseEnter={(event) => {
+                    if (!stateData || !stateData.visible) {
+                      setHoverCode(null);
+                      return;
+                    }
+                    refs.setReference(event.currentTarget);
+                    setHoverCode(meta.code);
+                  }}
+                  onMouseMove={(event) => {
+                    if (!stateData || !stateData.visible) {
+                      setHoverCode(null);
+                      return;
+                    }
+                    refs.setReference(event.currentTarget);
+                  }}
+                  onMouseLeave={() => {
+                    setHoverCode(null);
+                  }}
+                  onFocus={(event) => {
+                    if (!stateData || !stateData.visible) {
+                      setHoverCode(null);
+                      return;
+                    }
+                    refs.setReference(event.currentTarget);
+                    setHoverCode(meta.code);
+                  }}
+                  onBlur={() => {
+                    setHoverCode(null);
+                  }}
+                  onClick={(event) => {
+                    if (stateData && stateData.visible) {
+                      refs.setReference(event.currentTarget);
+                      setPinnedCode(meta.code);
+                    } else {
+                      setPinnedCode(null);
+                    }
+                    onSelectState(meta.code);
+                  }}
                   onKeyDown={(event: React.KeyboardEvent<SVGPathElement>) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
+                      if (stateData && stateData.visible) {
+                        refs.setReference(event.currentTarget);
+                        setPinnedCode(meta.code);
+                      } else {
+                        setPinnedCode(null);
+                      }
                       onSelectState(meta.code);
                     }
                   }}
@@ -143,10 +182,11 @@ const MapUS: React.FC<MapUSProps> = ({ states, selectedState, onSelectState }) =
       </ComposableMap>
 
       <Tooltip
-        open={Boolean(hoverState)}
-        state={hoverState ?? null}
+        open={Boolean(activeState?.visible)}
+        state={activeState ?? null}
         floatingStyles={floatingStyles}
         setFloating={refs.setFloating}
+        pinned={isPinnedTooltip}
       />
     </div>
   );

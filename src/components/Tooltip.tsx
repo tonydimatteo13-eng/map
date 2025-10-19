@@ -11,6 +11,7 @@ interface TooltipProps {
   state?: TooltipData | null;
   floatingStyles: React.CSSProperties;
   setFloating: (node: HTMLDivElement | null) => void;
+  pinned: boolean;
 }
 
 const statusLabels: Record<string, string> = {
@@ -25,7 +26,7 @@ const statusSwatches: Record<StatusColor, string> = {
   red: '#cc3333'
 };
 
-const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloating }) => {
+const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloating, pinned }) => {
   if (!open || !state) {
     return null;
   }
@@ -41,7 +42,9 @@ const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloat
     <div
       ref={setFloating}
       style={floatingStyles}
-      className="pointer-events-none z-50 w-72 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900"
+      className={`z-50 w-72 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900 ${
+        pinned ? 'pointer-events-auto' : 'pointer-events-none'
+      }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -72,7 +75,7 @@ const Tooltip: React.FC<TooltipProps> = ({ open, state, floatingStyles, setFloat
           rel="noopener noreferrer"
           className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-status-green underline-offset-4 hover:underline"
         >
-          Latest link
+          {state.link.label?.trim() ? state.link.label : 'Latest link'}
         </a>
       ) : null}
     </div>

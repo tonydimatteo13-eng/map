@@ -63,6 +63,16 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
     return Array.from(tagSet).sort((a, b) => a.localeCompare(b));
   }, [states]);
 
+  const statusCounts = useMemo(() => {
+    return states.reduce(
+      (acc, state) => {
+        acc[state.status] = (acc[state.status] ?? 0) + 1;
+        return acc;
+      },
+      { green: 0, yellow: 0, red: 0 } as Record<StatusColor, number>
+    );
+  }, [states]);
+
   const filteredStates = useMemo(() => {
     const shouldFilterByTag = Boolean(tagFilter);
     return states.map((state) => {
@@ -121,7 +131,7 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
 
       <main className="flex flex-1 flex-col gap-6 px-4 pb-6 pt-4 lg:flex-row lg:items-start lg:px-8">
         <section className="flex w-full flex-1 flex-col gap-4">
-          <Legend />
+          <Legend counts={statusCounts} />
           <div className="card h-full">
             <MapUS
               states={filteredStates}

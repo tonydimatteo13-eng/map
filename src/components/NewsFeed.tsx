@@ -34,10 +34,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode }) => {
 
   return (
     <div className="card flex h-[520px] flex-col gap-3">
-      <header className="flex flex-col gap-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-          Latest Headlines
-        </p>
+      <header>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           {stateCode} News Feed
         </h2>
