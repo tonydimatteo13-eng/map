@@ -76,7 +76,7 @@ export async function callOpenAiChat(
     role: message.role,
     content: [
       {
-        type: 'input_text',
+        type: message.role === 'assistant' ? 'output_text' : 'input_text',
         text: message.content
       }
     ]
