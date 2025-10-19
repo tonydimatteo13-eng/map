@@ -238,10 +238,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, onClose }) =>
           </button>
         </header>
 
-        <div className="flex flex-1 flex-col gap-3 px-6 py-4">
+        <div className="flex flex-1 flex-col gap-3 px-6 py-4 min-h-0">
           <div
             ref={scrollRef}
-            className="custom-scrollbar flex-1 space-y-3 overflow-auto rounded-xl border border-slate-200/60 bg-white/80 p-4 shadow-inner dark:border-slate-800/70 dark:bg-slate-900/80"
+            className="custom-scrollbar flex-1 space-y-3 overflow-auto rounded-xl border border-slate-200/60 bg-white/80 p-4 shadow-inner dark:border-slate-800/70 dark:bg-slate-900/80 min-h-0"
           >
             {messages.map((message) => (
               <div
