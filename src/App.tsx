@@ -143,7 +143,7 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
 
       <main className="flex flex-1 flex-col gap-6 px-4 pb-6 pt-4 lg:flex-row lg:items-start lg:px-8">
         <section className="flex w-full flex-1 flex-col gap-4">
-          <Legend counts={statusCounts} />
+          <Legend counts={statusCounts} activeColors={colorFilters} onToggleColor={onToggleColor} />
           <div className="card h-full">
             <MapUS
               states={filteredStates}
@@ -153,9 +153,8 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
           </div>
         </section>
 
-        <aside className="w-full shrink-0 lg:w-[350px] xl:w-[400px]">
+        <aside className="w-full shrink-0 lg:w-[360px] xl:w-[420px]">
           <div className="flex flex-col gap-4">
-            <StateDetails state={selectedStateData} />
             <React.Suspense fallback={<div className="card text-sm text-slate-500">Loading news…</div>}>
               <NewsFeed
                 stateCode={selectedState}
@@ -163,6 +162,7 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
                 activeChatId={chatArticle?.id ?? null}
               />
             </React.Suspense>
+            <StateDetails state={selectedStateData} />
           </div>
         </aside>
       </main>

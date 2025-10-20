@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import clsx from 'clsx';
 import type { NewsItem, StatusColor } from '../api/client';
 import { callOpenAiChat, type ChatMessagePayload } from '../api/openai';
+import { buttonBase, buttonGhost, buttonMuted, buttonPrimary } from '../styles/buttons';
 
 interface ChatPanelProps {
   article: NewsItem | null;
@@ -236,7 +238,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, stateStatus, 
                   href={focusArticle.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-full bg-status-green/20 px-2 py-1 text-[11px] font-semibold text-status-green transition hover:bg-status-green/30"
+                  className={clsx(buttonBase, buttonMuted, 'rounded-full px-4 py-1.5 text-[11px]')}
                 >
                   View article
                 </a>
@@ -256,7 +258,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, stateStatus, 
               setError(null);
               onClose();
             }}
-            className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-status-green hover:text-status-green dark:border-slate-700 dark:text-slate-400"
+            className={clsx(buttonBase, buttonGhost, 'px-4 py-1.5 text-xs')}
           >
             Close
           </button>
@@ -314,7 +316,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ article, stateName, stateStatus, 
               <button
                 type="submit"
                 disabled={isLoading || !input.trim() || !OPENAI_CONFIGURED}
-                className="inline-flex items-center justify-center rounded-xl bg-status-green px-4 py-3 text-sm font-semibold text-slate-900 shadow transition hover:bg-status-green/90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                className={clsx(buttonBase, buttonPrimary, 'rounded-xl px-5 py-3 text-sm')}
               >
                 Send
               </button>
