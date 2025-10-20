@@ -2,7 +2,6 @@ import React from 'react';
 import type { StatusColor } from '../api/client';
 
 interface HeaderProps {
-  theme: 'light' | 'dark';
   colors: StatusColor[];
   activeColors: Set<StatusColor>;
   availableTags: string[];
@@ -12,7 +11,6 @@ interface HeaderProps {
   onTagChange: (tag: string | null) => void;
   onChangedOnlyChange: (value: boolean) => void;
   onResetFilters: () => void;
-  onThemeChange: (theme: 'light' | 'dark') => void;
 }
 
 // const colorLabels: Record<StatusColor, string> = {
@@ -22,7 +20,6 @@ interface HeaderProps {
 // };
 
 const Header: React.FC<HeaderProps> = ({
-  theme,
   colors: _colors,
   activeColors: _activeColors,
   availableTags,
@@ -31,11 +28,8 @@ const Header: React.FC<HeaderProps> = ({
   onToggleColor: _onToggleColor,
   onTagChange,
   onChangedOnlyChange,
-  onResetFilters: _onResetFilters,
-  onThemeChange
+  onResetFilters: _onResetFilters
 }) => {
-  const isDark = theme === 'dark';
-
   return (
     <header className="border-b border-slate-200 bg-white/70 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
@@ -86,19 +80,24 @@ const Header: React.FC<HeaderProps> = ({
               </select>
             </label> */}
 
-            <ToggleSwitch
-              id="changed-filter"
-              label="Changed in last 30d"
-              checked={changedOnly}
-              onCheckedChange={onChangedOnlyChange}
-            />
-
-            <ToggleSwitch
-              id="theme-mode"
-              label="Dark mode"
-              checked={isDark}
-              onCheckedChange={(value) => onThemeChange(value ? 'dark' : 'light')}
-            />
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <span className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                Changed in last 30d
+              </span>
+              <button
+                type="button"
+                onClick={() => onChangedOnlyChange(!changedOnly)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full border border-slate-300 bg-slate-200 transition ${
+                  changedOnly ? 'bg-status-green border-status-green' : ''
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
+                    changedOnly ? 'translate-x-5' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </label>
 
             {/* <button
               type="button"
@@ -113,34 +112,5 @@ const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-
-interface ToggleSwitchProps {
-  id: string;
-  label: string;
-  checked: boolean;
-  onCheckedChange: (value: boolean) => void;
-}
-
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, label, checked, onCheckedChange }) => (
-  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-    <span className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</span>
-    <button
-      id={id}
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onCheckedChange(!checked)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full border border-slate-300 bg-slate-200 transition ${
-        checked ? 'bg-status-green border-status-green' : ''
-      }`}
-      type="button"
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
-          checked ? 'translate-x-5' : 'translate-x-1'
-        }`}
-      />
-    </button>
-  </label>
-);
 
 export default Header;

@@ -128,7 +128,6 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 transition-colors dark:bg-slate-950">
       <Header
-        theme={theme}
         colors={ALL_COLORS}
         activeColors={colorFilters}
         availableTags={availableTags}
@@ -138,7 +137,6 @@ const App: React.FC<AppProps> = ({ themeStorageKey }) => {
         onTagChange={setTagFilter}
         onChangedOnlyChange={setChangedOnly}
         onResetFilters={onResetFilters}
-        onThemeChange={handleThemeChange}
       />
 
       <main className="flex flex-1 flex-col gap-6 px-4 pb-6 pt-4 lg:flex-row lg:items-start lg:px-8">

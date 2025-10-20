@@ -28,14 +28,6 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
     overscan: 8
   });
 
-  if (!items.length) {
-    return (
-      <div className="card text-sm text-slate-500">
-        No recent news for <span className="font-semibold">{stateCode}</span>.
-      </div>
-    );
-  }
-
   return (
     <div className="card flex h-[520px] flex-col gap-3 border border-slate-200/70 bg-white/90 shadow-lg dark:border-slate-800/60 dark:bg-slate-950/80">
       <header className="flex items-center justify-between">
@@ -47,24 +39,30 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
         </span>
       </header>
 
-      <div ref={parentRef} className="custom-scrollbar flex-1 overflow-auto rounded-xl border border-slate-200/60 bg-white/80 dark:border-slate-800/60 dark:bg-slate-950/60">
-        <div
-          className="relative w-full"
-          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-            const item = items[virtualItem.index];
-            return (
-              <NewsCard
-                key={item.id ?? virtualItem.key}
-                item={item}
-                virtualItem={virtualItem}
-                onAskChat={onAskChat}
-                isActive={activeChatId === item.id}
-              />
-            );
-          })}
-        </div>
+      <div
+        ref={parentRef}
+        className="custom-scrollbar flex-1 overflow-auto rounded-xl border border-slate-200/60 bg-white/80 dark:border-slate-800/60 dark:bg-slate-950/60"
+      >
+        {items.length === 0 ? (
+          <div className="flex h-full items-center justify-center px-4 text-sm text-slate-500 dark:text-slate-400">
+            No recent news for <span className="ml-1 font-semibold">{stateCode}</span>.
+          </div>
+        ) : (
+          <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+            {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+              const item = items[virtualItem.index];
+              return (
+                <NewsCard
+                  key={item.id ?? virtualItem.key}
+                  item={item}
+                  virtualItem={virtualItem}
+                  onAskChat={onAskChat}
+                  isActive={activeChatId === item.id}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
