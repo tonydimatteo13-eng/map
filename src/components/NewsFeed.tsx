@@ -20,12 +20,21 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
   const queryOptions = useMemo(() => newsQueryOptions(stateCode), [stateCode]);
   const { data: items } = useSuspenseQuery(queryOptions);
 
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aTime = a.published_at ? Date.parse(a.published_at) : 0;
+      const bTime = b.published_at ? Date.parse(b.published_at) : 0;
+      return bTime - aTime;
+    });
+  }, [items]);
+
   const parentRef = useRef<HTMLDivElement | null>(null);
   const rowVirtualizer = useVirtualizer({
-    count: items.length,
+    count: sortedItems.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 120,
-    overscan: 8
+    estimateSize: () => 200,
+    overscan: 8,
+    measureElement: (element) => element?.getBoundingClientRect().height ?? 0
   });
 
   return (
@@ -35,7 +44,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
           {stateCode} News Feed
         </h2>
         <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-          {items.length} items
+          {sortedItems.length} items
         </span>
       </header>
 
@@ -43,26 +52,27 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
         ref={parentRef}
         className="custom-scrollbar flex-1 overflow-auto rounded-xl border border-slate-200/60 bg-white/80 dark:border-slate-800/60 dark:bg-slate-950/60"
       >
-        {items.length === 0 ? (
-          <div className="flex h-full items-center justify-center px-4 text-sm text-slate-500 dark:text-slate-400">
-            No recent news for <span className="ml-1 font-semibold">{stateCode}</span>.
-          </div>
-        ) : (
-          <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-            {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-              const item = items[virtualItem.index];
-              return (
-                <NewsCard
-                  key={item.id ?? virtualItem.key}
-                  item={item}
-                  virtualItem={virtualItem}
-                  onAskChat={onAskChat}
-                  isActive={activeChatId === item.id}
-                />
-              );
-            })}
-          </div>
-        )}
+          {sortedItems.length === 0 ? (
+            <div className="flex h-full items-center justify-center px-4 text-sm text-slate-500 dark:text-slate-400">
+              No recent news for <span className="ml-1 font-semibold">{stateCode}</span>.
+            </div>
+          ) : (
+            <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+              {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                const item = sortedItems[virtualItem.index];
+                return (
+                  <NewsCard
+                    key={item.id ?? virtualItem.key}
+                    item={item}
+                    virtualItem={virtualItem}
+                    onAskChat={onAskChat}
+                    isActive={activeChatId === item.id}
+                    measure={rowVirtualizer.measureElement}
+                  />
+                );
+              })}
+            </div>
+          )}
       </div>
     </div>
   );
@@ -73,9 +83,10 @@ interface NewsCardProps {
   virtualItem: VirtualItem;
   onAskChat: (item: NewsItem) => void;
   isActive: boolean;
+  measure: (element: HTMLElement | null) => void;
 }
 
-const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem, onAskChat, isActive }) => {
+const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem, onAskChat, isActive, measure }) => {
   const offsetTop = virtualItem.start;
   const tags = item.tags ?? [];
   const publishedRelative = item.published_at ? formatRelativeTime(item.published_at) : 'Unknown';
@@ -83,6 +94,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem, onAskChat, isAct
 
   return (
     <article
+      ref={measure}
       className="absolute left-0 w-full rounded-xl border border-transparent bg-white/95 p-4 shadow transition hover:-translate-y-1 hover:border-status-green/50 hover:shadow-lg dark:bg-slate-900/90"
       style={{ transform: `translateY(${offsetTop}px)` }}
     >
