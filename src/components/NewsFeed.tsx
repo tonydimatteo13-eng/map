@@ -1,7 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import clsx from 'clsx';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { newsQueryOptions, NewsItem } from '../api/client';
 import { formatDateTime, formatRelativeTime } from '../utils/datetime';
 import { buttonActive, buttonBase, buttonMuted } from '../styles/buttons';
@@ -28,14 +27,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
     });
   }, [items]);
 
-  const parentRef = useRef<HTMLDivElement | null>(null);
-  const rowVirtualizer = useVirtualizer({
-    count: sortedItems.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 200,
-    overscan: 8,
-    measureElement: (element) => element?.getBoundingClientRect().height ?? 0
-  });
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <div className="card flex h-[520px] flex-col gap-3 border border-slate-200/70 bg-white/90 shadow-lg dark:border-slate-800/60 dark:bg-slate-950/80">
@@ -49,30 +41,25 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
       </header>
 
       <div
-        ref={parentRef}
+        ref={scrollRef}
         className="custom-scrollbar flex-1 overflow-auto rounded-xl border border-slate-200/60 bg-white/80 dark:border-slate-800/60 dark:bg-slate-950/60"
       >
-          {sortedItems.length === 0 ? (
-            <div className="flex h-full items-center justify-center px-4 text-sm text-slate-500 dark:text-slate-400">
-              No recent news for <span className="ml-1 font-semibold">{stateCode}</span>.
-            </div>
-          ) : (
-            <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-              {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-                const item = sortedItems[virtualItem.index];
-                return (
-                  <NewsCard
-                    key={item.id ?? virtualItem.key}
-                    item={item}
-                    virtualItem={virtualItem}
-                    onAskChat={onAskChat}
-                    isActive={activeChatId === item.id}
-                    measure={rowVirtualizer.measureElement}
-                  />
-                );
-              })}
-            </div>
-          )}
+        {sortedItems.length === 0 ? (
+          <div className="flex h-full items-center justify-center px-4 text-sm text-slate-500 dark:text-slate-400">
+            No recent news for <span className="ml-1 font-semibold">{stateCode}</span>.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 py-1">
+            {sortedItems.map((item) => (
+              <NewsCard
+                key={item.id}
+                item={item}
+                onAskChat={onAskChat}
+                isActive={activeChatId === item.id}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -80,23 +67,18 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ stateCode, onAskChat, activeChatId 
 
 interface NewsCardProps {
   item: NewsItem;
-  virtualItem: VirtualItem;
   onAskChat: (item: NewsItem) => void;
   isActive: boolean;
-  measure: (element: HTMLElement | null) => void;
 }
 
-const NewsCard: React.FC<NewsCardProps> = ({ item, virtualItem, onAskChat, isActive, measure }) => {
-  const offsetTop = virtualItem.start;
+const NewsCard: React.FC<NewsCardProps> = ({ item, onAskChat, isActive }) => {
   const tags = item.tags ?? [];
   const publishedRelative = item.published_at ? formatRelativeTime(item.published_at) : 'Unknown';
   const publishedExact = item.published_at ? formatDateTime(item.published_at) : null;
 
   return (
     <article
-      ref={measure}
-      className="absolute left-0 w-full rounded-xl border border-transparent bg-white/95 p-4 shadow transition hover:-translate-y-1 hover:border-status-green/50 hover:shadow-lg dark:bg-slate-900/90"
-      style={{ transform: `translateY(${offsetTop}px)` }}
+      className="w-full rounded-xl border border-transparent bg-white/95 p-4 shadow transition hover:-translate-y-1 hover:border-status-green/50 hover:shadow-lg dark:bg-slate-900/90"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
