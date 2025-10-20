@@ -1,8 +1,12 @@
 import React from 'react';
+import clsx from 'clsx';
 import type { StatusColor } from '../api/client';
+import { buttonActive, buttonBase, buttonMuted } from '../styles/buttons';
 
 interface LegendProps {
   counts: Record<StatusColor, number>;
+  activeColors: Set<StatusColor>;
+  onToggleColor: (status: StatusColor) => void;
 }
 
 const STATUS_META: Array<{
@@ -31,7 +35,7 @@ const STATUS_META: Array<{
   }
 ];
 
-const Legend: React.FC<LegendProps> = ({ counts }) => (
+const Legend: React.FC<LegendProps> = ({ counts, activeColors, onToggleColor }) => (
   <div className="card">
     <div className="flex items-center justify-between">
       <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
@@ -40,9 +44,16 @@ const Legend: React.FC<LegendProps> = ({ counts }) => (
     </div>
     <div className="mt-4 grid gap-3 sm:grid-cols-3">
       {STATUS_META.map((entry) => (
-        <div
+        <button
           key={entry.status}
-          className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/60 p-3 text-sm dark:border-slate-800 dark:bg-slate-900/60"
+          type="button"
+          onClick={() => onToggleColor(entry.status)}
+          aria-pressed={activeColors.has(entry.status)}
+          className={clsx(
+            buttonBase,
+            'w-full justify-between rounded-xl text-left text-sm',
+            activeColors.has(entry.status) ? buttonActive : buttonMuted
+          )}
         >
           <div className="flex items-center gap-3">
             <span className={`inline-block h-3 w-3 rounded-full ${entry.colorClass}`} />
@@ -54,7 +65,7 @@ const Legend: React.FC<LegendProps> = ({ counts }) => (
           <span className="text-xl font-semibold text-slate-900 dark:text-slate-100">
             {counts[entry.status] ?? 0}
           </span>
-        </div>
+        </button>
       ))}
     </div>
   </div>

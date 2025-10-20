@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
+import clsx from 'clsx';
 import type { StateStatus, StatusColor } from '../api/client';
 import { formatDateTime, formatRelativeTime } from '../utils/datetime';
+import { buttonBase, buttonPrimary } from '../styles/buttons';
 
 interface StateDetailsProps {
   state: StateStatus | null;
@@ -40,7 +42,7 @@ const StateDetails: React.FC<StateDetailsProps> = ({ state }) => {
   const statusLabel = statusLabels[state.status] ?? state.status;
 
   return (
-    <div className="card flex flex-col gap-4">
+    <div className="card flex flex-col gap-4 border border-slate-200/70 bg-white/90 shadow-lg dark:border-slate-800/60 dark:bg-slate-950/80">
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
@@ -90,7 +92,7 @@ const StateDetails: React.FC<StateDetailsProps> = ({ state }) => {
           href={state.link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-status-green bg-status-green/10 px-3 py-2 text-sm font-medium text-status-green transition hover:bg-status-green/20"
+          className={clsx(buttonBase, buttonPrimary, 'w-full justify-center text-sm')}
         >
           {state.link.label?.trim() ? state.link.label : 'Open latest link'}
         </a>

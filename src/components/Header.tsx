@@ -15,29 +15,23 @@ interface HeaderProps {
   onThemeChange: (theme: 'light' | 'dark') => void;
 }
 
-const colorLabels: Record<StatusColor, string> = {
-  green: 'Green',
-  yellow: 'Yellow',
-  red: 'Red'
-};
-
-const colorSwatchClasses: Record<StatusColor, string> = {
-  green: 'bg-status-green text-slate-900',
-  yellow: 'bg-status-yellow text-slate-900',
-  red: 'bg-status-red text-white'
-};
+// const colorLabels: Record<StatusColor, string> = {
+//   green: 'Green',
+//   yellow: 'Yellow',
+//   red: 'Red'
+// };
 
 const Header: React.FC<HeaderProps> = ({
   theme,
-  colors,
-  activeColors,
+  colors: _colors,
+  activeColors: _activeColors,
   availableTags,
   activeTag,
   changedOnly,
-  onToggleColor,
+  onToggleColor: _onToggleColor,
   onTagChange,
   onChangedOnlyChange,
-  onResetFilters,
+  onResetFilters: _onResetFilters,
   onThemeChange
 }) => {
   const isDark = theme === 'dark';
@@ -53,9 +47,8 @@ const Header: React.FC<HeaderProps> = ({
             Track state status changes and recent news across the country.
           </p>
         </div>
-
         <div className="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:items-center">
-          <div className="flex flex-wrap items-center gap-2">
+          {/* <div className="flex flex-wrap items-center gap-2">
             {colors.map((color) => {
               const isActive = activeColors.has(color);
               return (
@@ -72,10 +65,10 @@ const Header: React.FC<HeaderProps> = ({
                 </button>
               );
             })}
-          </div>
+          </div> */}
 
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            {/* <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
               <span className="whitespace-nowrap text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Topic
               </span>
@@ -91,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({
                   </option>
                 ))}
               </select>
-            </label>
+            </label> */}
 
             <ToggleSwitch
               id="changed-filter"
@@ -107,13 +100,13 @@ const Header: React.FC<HeaderProps> = ({
               onCheckedChange={(value) => onThemeChange(value ? 'dark' : 'light')}
             />
 
-            <button
+            {/* <button
               type="button"
               onClick={onResetFilters}
               className="text-sm font-medium text-status-green underline-offset-4 hover:underline"
             >
               Reset
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
